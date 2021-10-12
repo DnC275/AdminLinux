@@ -1,0 +1,36 @@
+1. fdisk /dev/sda
+   n -> p -> 3(partion number) -> default(first sector number) -> +300M(last number) -> w
+2. blkid -o value /dev/sda3 > /root/partion_uuid.txt
+3. mkfs.ext4 -b 4096 /dev/sda3
+4. dumpe2fs -h /dev/sda3
+5. tune2fs -c 2 -i 2m /dev/sda3
+6. mkdir /mnt/newdisk
+   mount /dev/sda3 /mnt/newdisk
+7. ln -s /mnt/newdisk /root/fs_link
+8. mkdir /root/fs_link/new_dir 
+9. echo '/dev/sda3 /mnt/newdisk ext4 noexec,noatime 0 0' >> /etc/fstab
+10. umount /dev/sda3
+    fdisk /dev/sda
+    d -> 3 -> N(No)
+    n -> p -> 3 -> default -> +350M -> w
+    mount /dev/sda3 /mnt/newdisk  
+11. e2fsck -n /dev/sda3
+12. umount /dev/sda3
+    tune2fs -O ^has_journal /dev/sda3
+    fdisk /dev/sda
+    n -> p -> 4 -> default -> +12M -> w
+    mke2fs -b 4096 -O journal_dev /dev/sda4
+    tune2fs -j -J device=/dev/sda4 /dev/sda3
+    mount /dev/sda3 /mnt/newdisk
+13. fdisk /dev/sdb
+    n -> p -> 1 -> default -> +100M
+    n -> p -> 2 -> default -> +100M -> w
+14. pvcreate /dev/sdb1 /dev/sdb2
+    vgcreate vol_grp /dev/sdb1 /dev/sdb2
+    lvcreate -L 190M -n log_vol vol_grp
+    mkdir /mnt/supernewdisk
+    mkfs.ext4 /dev/vol_grp/log_vol
+    mount /dev/vol_grp/log_vol /mnt/supernewdisk
+15. mkdir /mnt/share
+    mount.cifs //192.168.43.117/lab2 share -o user=denis
+16. echo '//192.168.43.117/lab2 /mnt/share cifs user=denis,rw,noatime 0 0' >> /etc/fstab
